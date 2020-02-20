@@ -17,6 +17,7 @@ There are two things you can do about this warning:
     ;; For important compatibility libraries like cl-lib
     (add-to-list 'package-archives (cons "gnu" (concat proto "://elpa.gnu.org/packages/")))))
 (package-initialize)
+
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
@@ -34,6 +35,10 @@ There are two things you can do about this warning:
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  )
+
+(unless package-archive-contents
+  (package-refresh-contents))
+(package-install-selected-packages)
 
 ;; Evil configuration
 (setq evil-want-C-u-scroll t)
