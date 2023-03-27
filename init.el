@@ -23,12 +23,14 @@ There are two things you can do about this warning:
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
+ '(custom-safe-themes
+   '("9dc64d345811d74b5cd0dac92e5717e1016573417b23811b2c37bb985da41da2" "69ecb7a75a0a8440df4b9ffe28b46dadf849b499c7e10680c26b99a84df773ca" "39f0ac86b012062fed46469cc5ea1b00aa534db587ad21d55a9717a1bac99a27" "b54bf2fa7c33a63a009f249958312c73ec5b368b1094e18e5953adb95ad2ec3a" default))
  '(global-company-mode t)
  '(global-linum-mode t)
- '(org-agenda-files (quote ("~/Git/org-mode/agenda.org")))
+ '(ivy-mode t)
+ '(org-agenda-files '("~/Git/org-mode/agenda.org"))
  '(package-selected-packages
-   (quote
-    (org ace-window spaceline-all-the-icons spaceline counsel swiper ace-jump-mode ivy company projectile neotree evil-magit magit dracula-theme color-theme evil))))
+   '(org which-key use-package color-theme-modern org ace-window spaceline-all-the-icons spaceline counsel swiper ace-jump-mode ivy company projectile neotree magit dracula-theme evil)))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
@@ -40,86 +42,147 @@ There are two things you can do about this warning:
   (package-refresh-contents))
 (package-install-selected-packages)
 
-;; Evil configuration
-(setq evil-want-C-u-scroll t)
-(require 'evil)
-(evil-mode 1)
+;;; Formatting
 
-;; NeoTree
-(setq neo-smart-open t)
-(add-hook 'neotree-mode-hook
-    (lambda ()
-    (define-key evil-normal-state-local-map (kbd "TAB") 'neotree-enter)
-    (define-key evil-normal-state-local-map (kbd "SPC") 'neotree-quick-look)
-    (define-key evil-normal-state-local-map (kbd "q") 'neotree-hide)
-    (define-key evil-normal-state-local-map (kbd "RET") 'neotree-enter)
-    (define-key evil-normal-state-local-map (kbd "g") 'neotree-refresh)
-    (define-key evil-normal-state-local-map (kbd "n") 'neotree-next-line)
-    (define-key evil-normal-state-local-map (kbd "p") 'neotree-previous-line)
-    (define-key evil-normal-state-local-map (kbd "A") 'neotree-stretch-toggle)
-    (define-key evil-normal-state-local-map (kbd "H") 'neotree-hidden-file-toggle)))
+;; Linenum
+(setq linum-format "%4d \u2502 ")
+
+;; Show matching parens
+(show-paren-mode 1)
+
+;; Indentation
+(setq-default tab-width 2
+              tab-always-indent t
+              indent-tabs-mode nil
+              fill-column 80)
+
+;; Word wrapping
+(setq-default word-wrap t
+              truncate-lines t
+              truncate-partial-width-windows nil)
+
+;;; Disable auto backup
+(setq make-backup-files nil)
 
 ;; Color theme
 (add-to-list 'custom-theme-load-path "~/.emacs.d/themes")
 (load-theme 'dracula t)
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Packages configuration
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;;; ace-jump-mode
+(use-package ace-jump-mode
+  :ensure t)
+
+;; Evil configuration
+(use-package evil
+  :ensure t
+  :init
+  (setq evil-want-C-u-scroll t)
+  (evil-mode 1)
+  :bind (:map evil-normal-state-map
+	      ("SPC" . ace-jump-mode)))
+
+;; NeoTree
+(use-package neotree
+  :ensure t
+  :bind
+  ("C-x n" . 'neotree-toggle)
+ )
+
 ;; Ivy mode
-(ivy-mode 1)
-(setq ivy-use-virtual-buffers t) ;; add 'recentf-mode' and bookmarks to 'ivy-switch-buffer'
-(setq ivy-count-format "(%d/%d) ")
-(setq ivy-height 15) ;; number of result line to display
-(setq ivy-fixed-height-minibuffer t)
-;;(setq ivy-count-format "") ;; does not count candidates
-(global-set-key (kbd "C-s") 'swiper)
-(global-set-key (kbd "M-x") 'counsel-M-x)
-(global-set-key (kbd "C-x C-f") 'counsel-find-file)
-;;(global-set-key (kbd "<f1> f") 'counsel-describe-function)
-;;(global-set-key (kbd "<f1> v") 'counsel-describe-variable)
-;;(global-set-key (kbd "<f1> l") 'counsel-find-library)
-;;(global-set-key (kbd "<f2> i") 'counsel-info-lookup-symbol)
-;;(global-set-key (kbd "<f2> u") 'counsel-unicode-char)
+(use-package ivy
+  :ensure t
+  :config
+  ;; Global settings (defaults)
+  (setq ivy-use-virtual-buffers t)  ;; add 'recentf-mode' and bookmarks to 'ivy-switch-buffer'
+  (setq ivy-count-format "(%d/%d) ")
+  (setq ivy-height 15) ;; number of result line to display
+  (setq ivy-fixed-height-minibuffer t)
+  ;; Enable ivy mode
+  (ivy-mode 1)
+  :bind
+  ("C-c C-r" . 'ivy-resume)
+  ("C-x b" . 'ivy-switch-buffer)
+  ("C-x C-b" . 'ivy-switch-buffer)
+  )
 
-(global-set-key (kbd "C-c g") 'counsel-git)
-(global-set-key (kbd "C-c j") 'counsel-git-grep)
-(global-set-key (kbd "C-c k") 'counsel-ag)
-(global-set-key (kbd "C-x l") 'counsel-locate)
-(global-set-key (kbd "C-S-o") 'counsel-rhythmbox)
-(global-set-key (kbd "C-c C-r") 'ivy-resume)
+;; Swiper 
+(use-package swiper
+  :ensure t
+  :bind
+  ("C-s" . 'swiper)
+  )
 
-;; Projectile
-(require 'projectile)
-(setq projectile-completion-system 'ivy)
-(setq projectile-switch-project-action 'neotree-projectile-action)
-(projectile-global-mode)
-(define-key projectile-mode-map (kbd "C-c p") 'projectile-command-map)
+;; Counsel
+(use-package counsel
+  :ensure t
+  :bind
+  ("M-x" . 'counsel-M-x)
+  ("C-x C-f" . 'counsel-find-file)
+  )
+
+;; projectile
+(use-package projectile
+  :ensure t
+  :bind-keymap
+  ("C-c p" . projectile-command-map)
+  :config
+  (progn
+    (setq projectile-completion-system 'ivy)
+    (setq projectile-switch-project-action 'neotree-projectile-action)
+    (projectile-mode))
+  )
 
 ;; Company
-(add-hook 'after-init-hook 'global-company-mode)
+(use-package company
+  :ensure t
+  :init
+  :config
+  (setq company-idle-delay 0)
+  (setq company-minimum-prefix-length 2)
+  (setq company-selection-wrap-around t)
+  (global-company-mode)
+  )
 
-;; Linenum
-(setq linum-format "%4d \u2502 ")
-
-;; magit
-(global-set-key (kbd "C-c m") 'magit-status)
-(setq ediff-diff-options "-w"
-      ediff-split-window-function 'split-window-horizontally
-      ediff-window-setup-function 'ediff-setup-windows-plain)
-
-;; ace-jump-mode
-(define-key global-map (kbd "C-c SPC") 'ace-jump-mode)
-(define-key evil-normal-state-map (kbd "SPC") 'ace-jump-mode)
-
-;; menu bar
-(menu-bar-mode -1)
+;; Magit
+(use-package magit
+  :ensure t
+  :bind
+  ("C-c m" . 'magit-status)
+  )
 
 ;; spaceline
-(spaceline-emacs-theme)
-(spaceline-highlight-face-evil-state)
+(use-package spaceline
+  :ensure t
+  :config
+  (spaceline-emacs-theme)
+  (spaceline-highlight-face-evil-state)
+  )
 
 ;; ace-window
-(global-set-key (kbd "M-o") 'ace-window)
+(use-package ace-window
+  :ensure t
+  :bind
+  ("M-o" . 'ace-window)
+  )
 
 ;; org-mode
-(global-set-key (kbd "C-c a") 'org-agenda)
-(global-set-key (kbd "C-c c") 'org-capture)
-(setq org-todo-keywords '((sequence "TODO" "DOING" "DONE")))
+(use-package org
+  :ensure t
+  :config
+  (setq org-todo-keywords '((sequence "TODO" "DOING" "DONE")))
+  :bind
+  ("C-c a" . 'org-agenda)
+  ("C-c c" . 'org-capture)
+  )
+
+;;; which-key
+(use-package which-key
+  :ensure t
+  :init
+  (setq which-key-idle-delay 0.2)
+  :config
+  (which-key-mode))
